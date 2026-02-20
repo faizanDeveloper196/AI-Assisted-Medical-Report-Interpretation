@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load reports_extras %}
 
 {% block content %}
 <div class="hero-section">
@@ -13,6 +14,73 @@
         Advanced diagnostic support system. Upload medical imagings or reports for instant AI-powered analysis and interpretation.
     </p>
 
+    <!-- ERROR BANNER -->
+    {% if error %}
+    <div style="width:100%; max-width:600px; margin-bottom:1.5rem; padding: 1rem 1.5rem; background: rgba(255,0,0,0.12); border: 1px solid #ff4444; border-radius: 12px; color: #ff6b6b;">
+        <strong>⚠️ Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- RESULTS SECTION (shown above if available) -->
+    {% if results %}
+    <div style="width:100%; max-width:860px; margin-bottom: 2.5rem; text-align: left;">
+        <h2 style="text-align:center; font-size:1.8rem; margin-bottom:1.5rem; color: var(--primary-color);">📋 Analysis Results</h2>
+
+        {% if results.values %}
+        <div style="background: var(--card-bg); border-radius: 16px; border: 1px solid var(--glass-border); overflow: hidden;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background: rgba(0,229,255,0.1);">
+                        <th style="padding:1rem; text-align:left; color:var(--primary-color);">Test</th>
+                        <th style="padding:1rem; text-align:left; color:var(--primary-color);">Value</th>
+                        <th style="padding:1rem; text-align:left; color:var(--primary-color);">Status</th>
+                        <th style="padding:1rem; text-align:left; color:var(--primary-color);">AI Interpretation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test, value in results.values.items %}
+                    <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding:1rem; text-transform:capitalize; font-weight:600;">{{ test }}</td>
+                        <td style="padding:1rem; font-weight:bold;">{{ value }}</td>
+                        <td style="padding:1rem;">
+                            {% with status=results.statuses|get_item:test %}
+                                {% if status == 'High' %}
+                                    <span style="color:#ff6b6b; font-weight:bold;">🔴 High</span>
+                                {% elif status == 'Low' %}
+                                    <span style="color:#ffd93d; font-weight:bold;">🟡 Low</span>
+                                {% else %}
+                                    <span style="color:var(--success); font-weight:bold;">🟢 Normal</span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td style="padding:1rem; font-size:0.9rem; color:var(--text-muted);">
+                            {{ results.summaries|get_item:test }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="background: rgba(255,193,7,0.1); border:1px solid rgba(255,193,7,0.4); border-radius:12px; padding:1.5rem; text-align:center;">
+            <p style="color:#ffd93d; font-size:1rem; margin-bottom:0.5rem;">⚠️ No medical values were detected in this report.</p>
+            <p style="color:var(--text-muted); font-size:0.85rem;">Make sure the image is clear and labels like "Hemoglobin", "Glucose" are visible.</p>
+            {% if debug_text %}
+            <div style="margin-top:1rem; text-align:left; background:rgba(0,0,0,0.3); padding:1rem; border-radius:8px;">
+                <p style="color:var(--text-muted); font-size:0.8rem; margin-bottom:0.5rem;">📄 Extracted text preview:</p>
+                <code style="color:var(--primary-color); font-size:0.78rem; word-break:break-all; white-space:pre-wrap;">{{ debug_text }}</code>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <p style="text-align:center; font-size:0.78rem; color:var(--text-muted); margin-top:1.5rem;">
+            <strong>Disclaimer:</strong> This is AI-generated and does NOT constitute medical advice. Please consult a doctor.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- UPLOAD FORM -->
     <div class="upload-container">
         <form method="post" enctype="multipart/form-data" id="upload-form">
             {% csrf_token %}
@@ -21,12 +89,14 @@
                 <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Upload Medical Records</p>
                 <p style="font-size: 0.9rem; color: var(--text-muted);">PDF, JPG, PNG, or TXT supported</p>
                 <p style="font-size: 0.8rem; color: var(--text-muted); margin: 15px 0; text-transform: uppercase; letter-spacing: 1px;">- OR -</p>
-                <!-- Hidden file input -->
                 <input type="file" name="report_file" id="file-input" style="display: none;" accept=".pdf,image/*,.txt">
                 <button type="button" class="btn-primary" onclick="document.getElementById('file-input').click()">Select Files</button>
             </div>
             <div id="file-name" style="margin-top: 1.5rem; color: var(--success); font-weight: 500; min-height: 24px;"></div>
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">Analyze Report</button>
+            <button type="submit" id="analyze-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">Analyze Report</button>
+            <div id="loading" style="display:none; margin-top:1.5rem; text-align:center; color: var(--primary-color);">
+                <p style="font-size:0.95rem;">⏳ Processing your report. This may take 30–60 seconds...</p>
+            </div>
         </form>
     </div>
 </div>
@@ -35,6 +105,16 @@
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const fileNameDisplay = document.getElementById('file-name');
+    const analyzeBtn = document.getElementById('analyze-btn');
+    const loadingDiv = document.getElementById('loading');
+
+    document.getElementById('upload-form').addEventListener('submit', function() {
+        if (fileInput.files.length > 0) {
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = 'Analyzing...';
+            loadingDiv.style.display = 'block';
+        }
+    });
 
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -52,7 +132,6 @@
         e.preventDefault();
         dropZone.style.borderColor = 'var(--glass-border)';
         dropZone.style.backgroundColor = 'transparent';
-        
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
             updateFileName();
