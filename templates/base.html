@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AI Medical Reports{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1><a href="{% url 'home' %}">AI Medical Reports</a></h1>
+        <!-- Removed Auth Navigation -->
+    </header>
+    
+    <main class="content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <p>&copy; {% now "Y" %} AI-Assisted Medical Report Interpretation. Powering health with AI.</p>
+    </footer>
+</body>
+</html>

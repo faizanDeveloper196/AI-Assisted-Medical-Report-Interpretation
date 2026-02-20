@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="hero-section">
+    <div style="margin-bottom: 2rem;">
+        <!-- Simple CSS Heartbeat Animation -->
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px var(--primary-color));">
+            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+        </svg>
+    </div>
+    <h1 class="hero-title">AI Medical Interpretation</h1>
+    <p class="hero-subtitle">
+        Advanced diagnostic support system. Upload medical imagings or reports for instant AI-powered analysis and interpretation.
+    </p>
+
+    <div class="upload-container">
+        <form method="post" enctype="multipart/form-data" id="upload-form">
+            {% csrf_token %}
+            <div class="drop-zone" id="drop-zone">
+                <div class="icon-large">🩺</div>
+                <p style="font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem;">Upload Medical Records</p>
+                <p style="font-size: 0.9rem; color: var(--text-muted);">PDF, JPG, PNG, or TXT supported</p>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin: 15px 0; text-transform: uppercase; letter-spacing: 1px;">- OR -</p>
+                <!-- Hidden file input -->
+                <input type="file" name="report_file" id="file-input" style="display: none;" accept=".pdf,image/*,.txt">
+                <button type="button" class="btn-primary" onclick="document.getElementById('file-input').click()">Select Files</button>
+            </div>
+            <div id="file-name" style="margin-top: 1.5rem; color: var(--success); font-weight: 500; min-height: 24px;"></div>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">Analyze Report</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileNameDisplay = document.getElementById('file-name');
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--primary-color)';
+        dropZone.style.backgroundColor = 'rgba(0, 242, 255, 0.05)';
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--glass-border)';
+        dropZone.style.backgroundColor = 'transparent';
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = 'var(--glass-border)';
+        dropZone.style.backgroundColor = 'transparent';
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            updateFileName();
+        }
+    });
+
+    fileInput.addEventListener('change', updateFileName);
+
+    function updateFileName() {
+        if (fileInput.files.length > 0) {
+            fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+        } else {
+            fileNameDisplay.textContent = '';
+        }
+    }
+</script>
+{% endblock %}

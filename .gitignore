@@ -1,0 +1,127 @@
+*.env
+.env-local
+
+db.sqlite3
+
+
+# Ignore development static files
+# /static/
+
+# Keep collected static files
+!staticfiles/
+
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.pyc
+*.pyo
+
+# Virtual environment
+.conda
+
+venv/
+.env
+*.env.*
+*.venv
+
+# Django-related
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+# static/
+
+# Logs and debug files
+*.log
+logs/
+debug.log
+
+# IDE and editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Node.js dependencies (if using Tailwind, Webpack, or React)
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Tailwind and compiled assets
+public/
+dist/
+build/
+
+# Migrations (optional, if you don’t want to track generated migration files)
+**/migrations/*.pyc
+**/migrations/*.pyo
+**/migrations/__pycache__/
+
+# Secrets and credentials
+secrets.json
+config.json
+
+# Docker-related
+docker-compose.override.yml
+.dockerignore
+
+# Gunicorn
+gunicorn.log
+gunicorn-error.log
+
+# MySQL/PostgreSQL
+*.sql
+*.sqlite3
+*.pgdata
+*.pgdump
+
+# Pip and dependencies
+pip-log.txt
+pip-delete-this-directory.txt
+poetry.lock
+
+# Coverage reports
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Pytest
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+update_github_secrets.sh
+*.egg-info/
+.ruff_cache/
+
+# Backup files
+db_export/
+
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
+
+# dotenv-vault specific
+.env.keys
+.env.me
