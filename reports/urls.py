@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views
+from .views import HomeView, ReportHistoryView
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', HomeView.as_view(), name='home'),
+    path('history/open/<path:fname>/', ReportHistoryView.as_view(), name='open_history_file'),
 ]
