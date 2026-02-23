@@ -14,3 +14,6 @@ requests>=2.31.0
 python-dotenv>=1.0.0
 
 numpy>=1.24.0
+
+# OCR — Tesseract (fast, recommended) or PaddleOCR (fallback)
+pytesseract>=0.3.10

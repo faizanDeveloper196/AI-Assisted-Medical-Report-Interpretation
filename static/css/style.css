@@ -18,7 +18,9 @@ html {
 }
 
 /* Make box-sizing consistent to avoid unexpected overflow when zooming */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -70,22 +72,15 @@ header h1 a {
 
 /* Medical Cross Icon for Logo */
 header h1 a::before {
-  content: "+";
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
+  content: "";
+  display: inline-block;
   width: 24px; /* Reduced size */
   height: 24px;
-  background: linear-gradient(
-    135deg,
-    var(--primary-color),
-    var(--secondary-color)
-  );
-  color: #fff;
   border-radius: 6px;
-  font-size: 18px;
-  font-weight: bold;
   box-shadow: 0 0 10px rgba(0, 229, 255, 0.4);
+  background: 
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='12' y1='5' x2='12' y2='19'/%3E%3Cline x1='5' y1='12' x2='19' y2='12'/%3E%3C/svg%3E") center / 14px no-repeat,
+    linear-gradient(135deg, var(--primary-color), var(--secondary-color));
 }
 
 .content {
@@ -260,14 +255,16 @@ footer {
   padding: 0.5rem;
   flex-shrink: 0;
   border-right: 1px solid rgba(255, 255, 255, 0.1);
-  transition: width 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+  transition:
+    width 0.3s ease,
+    padding 0.3s ease,
+    opacity 0.3s ease;
   overflow: hidden;
   position: fixed; /* Fix sidebar position */
   top: 0;
   left: 0;
   bottom: 0;
   z-index: 999; /* Ensure it stays above main content */
-  
 }
 
 .sidebar.closed {
@@ -287,7 +284,9 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
   margin-top: 10px;
 }
 
@@ -307,7 +306,9 @@ footer {
   align-items: center;
   justify-content: center;
   margin-right: 1rem;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .open-sidebar-btn.visible {
@@ -410,7 +411,9 @@ footer {
   position: relative;
   margin-left: 260px; /* reserve space for fixed sidebar on wide screens */
   width: calc(100% - 260px);
-  transition: margin-left 0.25s ease, width 0.25s ease;
+  transition:
+    margin-left 0.25s ease,
+    width 0.25s ease;
 }
 
 /* When sidebar is closed, remove left margin and use full width */

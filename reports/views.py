@@ -14,20 +14,13 @@ class HomeView(TemplateView):
         context = {}
         if request.FILES.get('report_file'):
             uploaded_file = request.FILES['report_file']
-            print(f"\n{'='*50}")
-            print(f"[UPLOAD] File received: {uploaded_file.name}")
-            print(f"{'='*50}")
 
             fs = FileSystemStorage()
             filename = fs.save(uploaded_file.name, uploaded_file)
             uploaded_file_path = fs.path(filename)
-            print(f"[UPLOAD] Saved to: {uploaded_file_path}")
 
             try:
                 results = process_report(uploaded_file_path)
-                print(f"[RESULT] Raw text (first 300 chars): {results.get('raw_text','')[:300]}")
-                print(f"[RESULT] Values found: {results.get('values')}")
-                print(f"[RESULT] Statuses: {results.get('statuses')}")
                 context['results'] = results
                 context['file_url'] = fs.url(filename)
                 if not results.get('values'):
@@ -35,8 +28,6 @@ class HomeView(TemplateView):
             except Exception as e:
                 traceback.print_exc()
                 context['error'] = f"Error processing file: {str(e)}"
-
-            print(f"[CONTEXT] Keys set: {list(context.keys())}")
 
         return render(request, self.template_name, context)
 
@@ -52,7 +43,6 @@ class ReportHistoryView(TemplateView):
             return render(request, self.template_name, {'error': 'File not found.', 'file': None})
 
         url = settings.MEDIA_URL + fname
-        # decide how to display based on extension
         ext = os.path.splitext(fname)[1].lower()
         kind = 'other'
         if ext in ['.jpg', '.jpeg', '.png', '.gif', '.jfif']:
@@ -62,7 +52,6 @@ class ReportHistoryView(TemplateView):
         elif ext in ['.txt']:
             kind = 'text'
 
-        # Process the file so the history view shows the same Analysis Results
         context = {}
         try:
             results = process_report(safe_path)
@@ -74,9 +63,5 @@ class ReportHistoryView(TemplateView):
             traceback.print_exc()
             context['error'] = f"Error processing history file: {str(e)}"
 
-        # keep a `file` entry for templates that may use it
         context['file'] = {'name': fname, 'url': url, 'kind': kind}
-
-        # Render the main home template so Analysis Results are shown
         return render(request, 'reports/home.html', context)
-

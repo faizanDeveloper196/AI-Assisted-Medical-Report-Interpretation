@@ -1,12 +1,15 @@
 import requests
 import json
 import re
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def extract_values_with_llm(raw_text):
     """
     Uses the local LLM (Ollama) to dynamically extract ALL medical test values
     from the raw OCR text. Returns a dict of {test_name: value}.
-    Much more flexible than hardcoded regex patterns.
     """
     if not raw_text or not raw_text.strip():
         return {}
@@ -39,37 +42,40 @@ JSON:"""
         )
         response.raise_for_status()
         llm_response = response.json().get("response", "").strip()
-        print(f"[LLM PARSER] Response: {llm_response[:300]}")
 
-        # Extract the JSON from the response (in case LLM adds extra text)
         json_match = re.search(r'\{[^{}]+\}', llm_response, re.DOTALL)
         if json_match:
             parsed = json.loads(json_match.group())
-            # Ensure all values are floats
             return {k: float(v) for k, v in parsed.items() if isinstance(v, (int, float))}
         return {}
 
     except Exception as e:
-        print(f"[LLM PARSER] Error: {e}")
-        # Fallback to regex if LLM fails
+        logger.error(f"LLM Parser Error: {e}")
         return extract_values_regex(raw_text)
 
 
 def extract_values_regex(text):
     """
-    Fallback regex-based extractor for common medical tests.
+    Regex-based extractor for medical tests.
+    Patterns are OCR-tolerant to handle common misreads (e.g., Hemagabin for Hemoglobin).
     """
     values = {}
     patterns = {
-        "hemoglobin": r'Hemoglobin[\s\S]*?(\d+\.?\d*)',
-        "glucose":    r'Glucose[\s\S]*?(\d+\.?\d*)',
-        "rbc":        r'RBC[\s\S]*?(\d+\.?\d*)',
-        "wbc":        r'WBC[\s\S]*?(\d+\.?\d*)',
-        "platelets":  r'Platelet[\s\S]*?(\d+\.?\d*)',
-        "creatinine": r'Creatinine[\s\S]*?(\d+\.?\d*)',
+        "hemoglobin": r'(?:H[ae]m[ao]g[lo][ob]bin|Hgb|HGB|Hb\b)[\s\S]*?(\d+\.?\d*)',
+        "glucose":    r'Gl[uo]c[oa]se[\s\S]*?(\d+\.?\d*)',
+        "rbc":        r'(?:RBC|R\.?B\.?C|Red\s*Blood)[\s\S]*?(\d+\.?\d*)',
+        "wbc":        r'(?:WBC|W\.?B\.?C|White\s*Blood|Total\s*(?:WBC|Leucocyte))[\s\S]*?(\d+\.?\d*)',
+        "platelets":  r'(?:Pl[ai][at]elet|PLT)[\s\S]*?(\d+\.?\d*)',
+        "creatinine": r'Cr[ea][ea]t[il]nine[\s\S]*?(\d+\.?\d*)',
         "ast":        r'\bAST[\s\S]*?(\d+\.?\d*)',
         "alt":        r'\bALT[\s\S]*?(\d+\.?\d*)',
-        "cholesterol":r'Cholesterol[\s\S]*?(\d+\.?\d*)',
+        "cholesterol":r'Chol[ea]st[ea]r[oa]l[\s\S]*?(\d+\.?\d*)',
+        "pcv":        r'(?:PCV|Packed\s*Cell|Hematocrit|HCT)[\s\S]*?(\d+\.?\d*)',
+        "mcv":        r'\bMCV[\s\S]*?(\d+\.?\d*)',
+        "mch":        r'\bMCH\b[\s\S]*?(\d+\.?\d*)',
+        "mchc":       r'\bMCHC[\s\S]*?(\d+\.?\d*)',
+        "neutrophils":r'Neutr[oa]ph[il]l[\s\S]*?(\d+\.?\d*)',
+        "lymphocytes":r'Lymph[oa]cyte[\s\S]*?(\d+\.?\d*)',
     }
     for key, pattern in patterns.items():
         match = re.search(pattern, text, re.IGNORECASE)
@@ -83,6 +89,9 @@ def extract_values_regex(text):
 
 def extract_values(text):
     """
-    Main entry point: tries LLM extraction first, falls back to regex.
+    Main entry point: tries fast regex first, falls back to LLM if no results.
     """
+    regex_result = extract_values_regex(text)
+    if regex_result:
+        return regex_result
     return extract_values_with_llm(text)
