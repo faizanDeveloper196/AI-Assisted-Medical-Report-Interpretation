@@ -6,8 +6,7 @@ Follow these steps to set up the **AI-Assisted Medical Report Interpretation** p
 
 1.  **Python** (3.10 or higher)
 2.  **Ollama** (for AI interpretation)
-3.  **Poppler** (for PDF processing)
-4.  **Tesseract OCR** (for fast text extraction — recommended)
+3.  **Tesseract OCR** (for fast text extraction — recommended)
 
 ---
 
@@ -66,27 +65,6 @@ sudo apt-get install tesseract-ocr
 ```
 
 > **Note:** If Tesseract is not installed, the app will fall back to PaddleOCR (slower but still works).
-
-### Poppler (Required for PDF to Image conversion)
-
-**Windows:**
-
-1.  Download the latest binary from [Github](https://github.com/oschwartz10612/poppler-windows/releases/).
-2.  Extract the zip file.
-3.  Add the `bin` folder to your System PATH environment variable.
-    - _Example:_ `C:\Program Files\poppler-24.02.0\Library\bin`
-
-**Mac:**
-
-```bash
-brew install poppler
-```
-
-**Linux (Ubuntu/Debian):**
-
-```bash
-sudo apt-get install poppler-utils
-```
 
 ---
 

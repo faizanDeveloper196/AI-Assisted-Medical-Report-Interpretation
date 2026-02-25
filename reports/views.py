@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
 from .utils.process_report import process_report
 from django.conf import settings
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
+from django.http import JsonResponse
 import os
 import traceback
 
@@ -65,3 +66,40 @@ class ReportHistoryView(TemplateView):
 
         context['file'] = {'name': fname, 'url': url, 'kind': kind}
         return render(request, 'reports/home.html', context)
+
+
+class DeleteHistoryView(View):
+    """Handle deletion of one or multiple history files via AJAX."""
+
+    def post(self, request, *args, **kwargs):
+        file_names = request.POST.getlist('file_names[]')
+        if not file_names:
+            return JsonResponse({'success': False, 'error': 'No files provided for deletion.'}, status=400)
+
+        media_dir = settings.MEDIA_ROOT
+        deleted_count = 0
+        errors = []
+
+        for fname in file_names:
+            # Ensure path is safe and within MEDIA_ROOT
+            safe_path = os.path.abspath(os.path.join(media_dir, fname))
+            if not safe_path.startswith(os.path.abspath(media_dir)):
+                errors.append(f"Invalid path for {fname}")
+                continue
+                
+            if os.path.exists(safe_path) and os.path.isfile(safe_path):
+                try:
+                    os.remove(safe_path)
+                    deleted_count += 1
+                except Exception as e:
+                    errors.append(f"Could not delete {fname}: {str(e)}")
+            else:
+                errors.append(f"File not found: {fname}")
+
+        success = len(errors) == 0
+        return JsonResponse({
+            'success': success,
+            'deleted_count': deleted_count,
+            'errors': errors
+        }, status=200 if success else 207)  # 207 Multi-Status if partial success
+

@@ -2,6 +2,79 @@
 {% load reports_extras %}
 
 {% block content %}
+<style>
+/* DNA Futuristic Loader */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.dna-loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.dna-container {
+    position: relative;
+    width: 12px;
+    height: 60px;
+}
+
+.dna-dot {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    animation: dna-move 1.5s ease-in-out infinite;
+    left: 0;
+}
+
+.dna-dot.top {
+    background-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color);
+}
+
+.dna-dot.bottom {
+    background-color: #00e5ff;
+    box-shadow: 0 0 15px #00e5ff;
+}
+
+@keyframes dna-move {
+    0%   { top: 0; transform: scale(1); z-index: 2; opacity: 1; }
+    25%  { top: 24px; transform: scale(0.4); z-index: 1; opacity: 0.2; }
+    50%  { top: 48px; transform: scale(1); z-index: 2; opacity: 1; }
+    75%  { top: 24px; transform: scale(1.4); z-index: 3; opacity: 1; }
+    100% { top: 0; transform: scale(1); z-index: 2; opacity: 1; }
+}
+
+.dna-container:nth-child(1) .dna-dot.top { animation-delay: -0s; }
+.dna-container:nth-child(2) .dna-dot.top { animation-delay: -0.15s; }
+.dna-container:nth-child(3) .dna-dot.top { animation-delay: -0.3s; }
+.dna-container:nth-child(4) .dna-dot.top { animation-delay: -0.45s; }
+.dna-container:nth-child(5) .dna-dot.top { animation-delay: -0.6s; }
+.dna-container:nth-child(6) .dna-dot.top { animation-delay: -0.75s; }
+.dna-container:nth-child(7) .dna-dot.top { animation-delay: -0.9s; }
+.dna-container:nth-child(8) .dna-dot.top { animation-delay: -1.05s; }
+.dna-container:nth-child(9) .dna-dot.top { animation-delay: -1.2s; }
+.dna-container:nth-child(10) .dna-dot.top { animation-delay: -1.35s; }
+
+.dna-container:nth-child(1) .dna-dot.bottom { animation-delay: -0.75s; }
+.dna-container:nth-child(2) .dna-dot.bottom { animation-delay: -0.9s; }
+.dna-container:nth-child(3) .dna-dot.bottom { animation-delay: -1.05s; }
+.dna-container:nth-child(4) .dna-dot.bottom { animation-delay: -1.2s; }
+.dna-container:nth-child(5) .dna-dot.bottom { animation-delay: -1.35s; }
+.dna-container:nth-child(6) .dna-dot.bottom { animation-delay: -1.5s; }
+.dna-container:nth-child(7) .dna-dot.bottom { animation-delay: -1.65s; }
+.dna-container:nth-child(8) .dna-dot.bottom { animation-delay: -1.8s; }
+.dna-container:nth-child(9) .dna-dot.bottom { animation-delay: -1.95s; }
+.dna-container:nth-child(10) .dna-dot.bottom { animation-delay: -2.1s; }
+</style>
+
 <div class="hero-section">
     <div style="margin-bottom: 2rem;">
         <!-- Simple CSS Heartbeat Animation -->
@@ -95,7 +168,22 @@
             <div id="file-name" style="margin-top: 1.5rem; color: var(--success); font-weight: 500; min-height: 24px;"></div>
             <button type="submit" id="analyze-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">Analyze Report</button>
             <div id="loading" style="display:none; margin-top:1.5rem; text-align:center; color: var(--primary-color);">
-                <p style="font-size:0.95rem;">⏳ Processing your report. This may take 30–60 seconds...</p>
+                <div class="loader-container">
+                    <div class="dna-loader">
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                        <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
+                    </div>
+                </div>
+                <p style="font-size:0.95rem; margin-top: 1rem; font-weight: 500; letter-spacing: 0.5px;">⏳ Processing your report...</p>
+                <p style="font-size:0.8rem; color: var(--text-muted); margin-top: 0.5rem;">This may take 30–60 seconds</p>
             </div>
         </form>
     </div>

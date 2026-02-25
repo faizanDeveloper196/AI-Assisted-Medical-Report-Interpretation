@@ -1,6 +1,6 @@
 import numpy as np
 from PIL import Image
-from pdf2image import convert_from_path
+import fitz  # PyMuPDF
 import os
 import logging
 
@@ -133,13 +133,22 @@ def _extract_with_paddle(image_path):
 
 
 def pdf_to_images(pdf_path):
-    """Converts a PDF to a list of temporary image paths."""
-    images = convert_from_path(pdf_path)
+    """Converts a PDF to a list of temporary image paths using PyMuPDF."""
     image_paths = []
     base_name = os.path.splitext(os.path.basename(pdf_path))[0]
     temp_dir = os.path.dirname(pdf_path)
-    for i, img in enumerate(images):
+    
+    # Open the PDF Document
+    doc = fitz.open(pdf_path)
+    
+    for i in range(len(doc)):
+        page = doc.load_page(i)
+        # resolution = 300 DPI for better OCR quality
+        pix = page.get_pixmap(matrix=fitz.Matrix(300 / 72, 300 / 72)) 
+        
         path = os.path.join(temp_dir, f"{base_name}_page_{i}.png")
-        img.save(path, 'PNG')
+        pix.save(path)
         image_paths.append(path)
+        
+    doc.close()
     return image_paths
