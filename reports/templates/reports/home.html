@@ -76,7 +76,7 @@
 </style>
 
 <div class="hero-section">
-    <div style="margin-bottom: 2rem;">
+    <div style="margin-bottom: 1.6rem;">
         <!-- Simple CSS Heartbeat Animation -->
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 10px var(--primary-color));">
             <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -165,9 +165,99 @@
                 <input type="file" name="report_file" id="file-input" style="display: none;" accept=".pdf,image/*,.txt">
                 <button type="button" class="btn-primary" onclick="document.getElementById('file-input').click()">Select Files</button>
             </div>
-            <div id="file-name" style="margin-top: 1.5rem; color: var(--success); font-weight: 500; min-height: 24px;"></div>
-            <button type="submit" id="analyze-btn" class="btn-primary" style="width: 100%; margin-top: 2rem; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">Analyze Report</button>
-            <div id="loading" style="display:none; margin-top:1.5rem; text-align:center; color: var(--primary-color);">
+            <!-- Active File Preview -->
+            <div id="active-file-container" class="ui-panel hidden" style="display: none; text-align: center; margin-top: 1.2rem;">
+                <style>
+                    /* GPU-composited breathing: only opacity changes — zero repaint */
+                    @keyframes breathe-opacity {
+                        0%   { opacity: 0.15; }
+                        50%  { opacity: 0.85; }
+                        100% { opacity: 0.15; }
+                    }
+
+                    #preview-wrapper {
+                        position: relative;
+                        display: inline-block;
+                        border-radius: 14px;
+                        border: none;
+                        background: transparent;
+                        overflow: visible;
+                        max-width: 100%;
+                        margin-bottom: 1rem;
+                        /* GPU layer: prevents content from being repainted with glow */
+                        will-change: transform;
+                        transform: translateZ(0);
+                    }
+                    /* Glow now directly targets the image via filter so it wraps the image contents */
+                    #preview-wrapper {
+                        position: relative;
+                        display: inline-block;
+                        border-radius: 12px;
+                        border: none;
+                        background: transparent;
+                        overflow: visible;
+                        max-width: 100%;
+                        margin-bottom: 1rem;
+                        will-change: filter, transform;
+                        transform: translateZ(0); 
+                    }
+                    /* Glow effect directly on the wrapper container's filter instead of box-shadow box */
+                    @keyframes breathe-filter {
+                        0%   { filter: drop-shadow(0 0 10px rgba(0,229,255,0.4)) drop-shadow(0 0 2px rgba(0,229,255,0.1)); opacity: 0.8; }
+                        50%  { filter: drop-shadow(0 0 25px rgba(0,229,255,0.8)) drop-shadow(0 0 5px rgba(0,229,255,0.3)); opacity: 1; }
+                        100% { filter: drop-shadow(0 0 10px rgba(0,229,255,0.4)) drop-shadow(0 0 2px rgba(0,229,255,0.1)); opacity: 0.8; }
+                    }
+                    
+                    /* Overflow hidden removed entirely so drop-shadow can escape the box */
+                    #preview-inner {
+                        border-radius: 12px;
+                        background: transparent;
+                        animation: breathe-filter 3.2s ease-in-out infinite; 
+                        will-change: filter, opacity;
+                    }
+
+                    #file-preview-img {
+                        display: block;
+                        max-width: 100%;
+                        max-height: 200px;
+                        object-fit: contain;
+                        transition: opacity 0.4s ease;
+                        border-radius: 12px; /* Match inner radius to prevent corner bleed */
+                    }
+                    #file-icon-fallback {
+                        font-size: 3.5rem;
+                        padding: 1.5rem 2.5rem;
+                        display: none;
+                    }
+                    /* Shared fade utility — only opacity+transform, both composited */
+                    .ui-panel {
+                        will-change: opacity, transform;
+                        transition: opacity 0.3s ease, transform 0.3s ease;
+                    }
+                    .ui-panel.hidden {
+                        opacity: 0;
+                        transform: translateY(8px);
+                        pointer-events: none;
+                    }
+                </style>
+                <div id="preview-wrapper">
+                    <div id="preview-inner">
+                        <img id="file-preview-img" src="" alt="Preview" style="display:none;">
+                        <div id="file-icon-fallback">📄</div>
+                    </div>
+                </div>
+                <div id="file-name" style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; word-break: break-all; padding: 0 0.5rem;"></div>
+                <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                    <button type="button" id="clear-file-btn" style="background: transparent; border: 1px solid rgba(255,68,68,0.5); color: #ff6b6b; padding: 0.7rem 1.4rem; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;" onmouseover="this.style.background='rgba(255,68,68,0.1)'" onmouseout="this.style.background='transparent'">
+                        ✕ Remove
+                    </button>
+                    <button type="submit" id="analyze-btn" class="btn-primary" style="margin-top: 0; background: linear-gradient(135deg, var(--secondary-color), #003d80); color: white; box-shadow: 0 4px 15px rgba(0, 86, 179, 0.4);">
+                        Analyze Report
+                    </button>
+                </div>
+            </div>
+
+            <div id="loading" class="ui-panel hidden" style="display:none; margin-top:1.5rem; text-align:center; color: var(--primary-color);">
                 <div class="loader-container">
                     <div class="dna-loader">
                         <div class="dna-container"><div class="dna-dot top"></div><div class="dna-dot bottom"></div></div>
@@ -183,7 +273,7 @@
                     </div>
                 </div>
                 <p style="font-size:0.95rem; margin-top: 1rem; font-weight: 500; letter-spacing: 0.5px;">⏳ Processing your report...</p>
-                <p style="font-size:0.8rem; color: var(--text-muted); margin-top: 0.5rem;">This may take 30–60 seconds</p>
+                <p style="font-size:0.8rem; color: var(--text-muted); margin-top: 0.5rem;">This may take 20–40 seconds</p>
             </div>
         </form>
     </div>
@@ -193,17 +283,50 @@
     const dropZone = document.getElementById('drop-zone');
     const fileInput = document.getElementById('file-input');
     const fileNameDisplay = document.getElementById('file-name');
+    const activeFileContainer = document.getElementById('active-file-container');
+    const clearFileBtn = document.getElementById('clear-file-btn');
     const analyzeBtn = document.getElementById('analyze-btn');
     const loadingDiv = document.getElementById('loading');
+    const filePreviewImg = document.getElementById('file-preview-img');
+    const fileIconFallback = document.getElementById('file-icon-fallback');
 
+    // --- Smooth transition helpers ---
+    function fadeIn(el) {
+        el.style.display = 'block';
+        // Force reflow so transition applies
+        void el.offsetWidth;
+        el.classList.remove('hidden');
+    }
+
+    function fadeOut(el, callback) {
+        el.classList.add('hidden');
+        el.addEventListener('transitionend', function handler() {
+            el.removeEventListener('transitionend', handler);
+            el.style.display = 'none';
+            if (callback) callback();
+        }, { once: true });
+    }
+
+    // --- Form submit: preview → loader ---
     document.getElementById('upload-form').addEventListener('submit', function() {
         if (fileInput.files.length > 0) {
             analyzeBtn.disabled = true;
             analyzeBtn.textContent = 'Analyzing...';
-            loadingDiv.style.display = 'block';
+            fadeOut(activeFileContainer, () => {
+                fadeIn(loadingDiv);
+            });
         }
     });
 
+    // --- Remove file: preview → dropzone ---
+    clearFileBtn.addEventListener('click', () => {
+        fileInput.value = '';
+        fadeOut(activeFileContainer, () => {
+            fadeIn(dropZone);
+        });
+    });
+
+    // --- Drag events ---
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.style.borderColor = 'var(--primary-color)';
@@ -228,11 +351,42 @@
 
     fileInput.addEventListener('change', updateFileName);
 
+    // --- File selected: dropzone → preview ---
     function updateFileName() {
         if (fileInput.files.length > 0) {
-            fileNameDisplay.textContent = `Selected: ${fileInput.files[0].name}`;
+            const file = fileInput.files[0];
+            fileNameDisplay.textContent = file.name;
+
+            const isImage = file.type.startsWith('image/');
+            if (isImage) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    // Start with 0 opacity so it fades in
+                    filePreviewImg.style.opacity = '0';
+                    filePreviewImg.src = e.target.result;
+                    filePreviewImg.style.display = 'block';
+                    fileIconFallback.style.display = 'none';
+                    // Fade image in after src is set
+                    requestAnimationFrame(() => {
+                        filePreviewImg.style.opacity = '1';
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                filePreviewImg.style.display = 'none';
+                filePreviewImg.src = '';
+                fileIconFallback.textContent = file.type === 'application/pdf' ? '📑' : '📄';
+                fileIconFallback.style.display = 'block';
+            }
+
+            // Fade out dropzone, then fade in preview card
+            fadeOut(dropZone, () => {
+                fadeIn(activeFileContainer);
+            });
         } else {
-            fileNameDisplay.textContent = '';
+            fadeOut(activeFileContainer, () => {
+                fadeIn(dropZone);
+            });
         }
     }
 </script>
